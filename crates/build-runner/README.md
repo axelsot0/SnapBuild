@@ -1,8 +1,8 @@
 # build-runner
 
-Runner for build/test commands from materialized snapshots.
+Executes build/test commands for a materialized snapshot.
 
-Planned responsibilities:
-- Detect project type.
-- Choose default build/test commands.
-- Execute commands and collect status, duration, and logs.
+## Current capabilities
+- Run command in a target working directory.
+- Capture stdout/stderr.
+- Return exit code, success flag, and duration.

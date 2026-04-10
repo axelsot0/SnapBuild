@@ -2,7 +2,9 @@
 
 Desktop shell for SnapBuild (Tauri + React UI).
 
-Planned responsibilities:
-- Open a local project.
-- Render snapshot timeline.
-- Trigger `Run snapshot` and `Restore` commands.
+## Planned next step
+- Wire UI actions to backend commands:
+  - Open project.
+  - Create/list snapshots.
+  - Run snapshot.
+  - Restore snapshot.

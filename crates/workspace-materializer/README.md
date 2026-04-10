@@ -1,8 +1,8 @@
 # workspace-materializer
 
-Rebuild a snapshot into a temporary directory.
+Materializes a snapshot into a temporary directory.
 
-Planned responsibilities:
-- Materialize files from snapshot manifests.
-- Validate paths and integrity.
-- Return temp workspace path for execution.
+## Current capabilities
+- Load manifest from `snapshot-engine`.
+- Resolve blobs from CAS object store.
+- Recreate file tree in target directory.

@@ -22,14 +22,20 @@ SnapBuild/
     workspace-materializer/
   docs/
     mvp-spec.md
+  Cargo.toml
   README.md
 ```
 
-## Next planning checkpoints
+## Development status (week 1)
 
-Before coding deeply, lock these 4 items:
+Implemented backend foundations in Rust:
 
-1. Value proposition in one sentence.
-2. 90-second demo flow.
-3. Minimum architecture.
-4. First-week implementation roadmap.
+- `snapshot-engine`: CAS storage + plain manifest files.
+- `workspace-materializer`: reconstruct snapshot into temp folder.
+- `build-runner`: execute command and capture result metadata.
+
+Run all tests:
+
+```bash
+cargo test
+```
