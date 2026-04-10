@@ -331,7 +331,6 @@ fn unix_ms() -> u128 {
 mod tests {
     use super::*;
 
-
     #[test]
     fn hash_is_deterministic_for_same_content() {
         let a = hash_bytes(b"snapbuild");
