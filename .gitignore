@@ -1,0 +1,14 @@
+# Rust
+/target
+
+# Node
+node_modules/
+dist/
+
+# Tauri
+apps/desktop/src-tauri/target/
+apps/desktop/src-tauri/WixTools/
+
+# Env
+.env
+.env.*
