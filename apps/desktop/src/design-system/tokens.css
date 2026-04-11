@@ -1,0 +1,110 @@
+/* SnapBuild Design Tokens */
+
+:root {
+  /* ── Backgrounds ── */
+  --color-bg-base:       #080808;
+  --color-bg-surface:    #0E0E0E;
+  --color-bg-elevated:   #141414;
+  --color-bg-overlay:    #1A1A1A;
+  --color-bg-subtle:     #222222;
+
+  /* ── Borders ── */
+  --color-border-default: #2A2A2A;
+  --color-border-strong:  #3A3A3A;
+  --color-border-focus:   #5A5AFF;
+
+  /* ── Text ── */
+  --color-text-primary:   #F0F0F0;
+  --color-text-secondary: #8A8A8A;
+  --color-text-muted:     #4A4A4A;
+  --color-text-inverse:   #080808;
+
+  /* ── Accent — Electric Indigo ── */
+  --color-accent-primary:     #5A5AFF;
+  --color-accent-primary-dim: #2A2A7A;
+  --color-accent-glow:        rgba(90, 90, 255, 0.15);
+
+  /* ── Snapshot status ── */
+  --color-status-ok:        #22C55E;
+  --color-status-ok-dim:    rgba(34, 197, 94, 0.12);
+  --color-status-fail:      #EF4444;
+  --color-status-fail-dim:  rgba(239, 68, 68, 0.12);
+  --color-status-warn:      #F59E0B;
+  --color-status-warn-dim:  rgba(245, 158, 11, 0.12);
+  --color-status-idle:      #3A3A3A;
+
+  /* ── Breakpoints ── */
+  --color-breakpoint:      #FF5A5A;
+  --color-breakpoint-glow: rgba(255, 90, 90, 0.20);
+
+  /* ── Glass ── */
+  --glass-bg:     rgba(20, 20, 20, 0.85);
+  --glass-border: rgba(255, 255, 255, 0.06);
+  --glass-blur:   16px;
+
+  /* ── Typography ── */
+  --font-sans: "Inter var", "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", "Cascadia Code", monospace;
+
+  --font-size-xs:   11px;
+  --font-size-sm:   12px;
+  --font-size-base: 13px;
+  --font-size-md:   14px;
+  --font-size-lg:   16px;
+  --font-size-xl:   20px;
+  --font-size-2xl:  24px;
+
+  --font-weight-normal:   400;
+  --font-weight-medium:   500;
+  --font-weight-semibold: 600;
+  --font-weight-bold:     700;
+
+  --line-height-tight:  1.2;
+  --line-height-base:   1.5;
+  --line-height-relaxed: 1.75;
+
+  /* ── Spacing (8px base) ── */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* ── Radius ── */
+  --radius-sm:   4px;
+  --radius-md:   8px;
+  --radius-lg:   12px;
+  --radius-xl:   16px;
+  --radius-full: 9999px;
+
+  /* ── Shadows ── */
+  --shadow-node:          0 0 0 1px var(--color-border-default), 0 2px 8px rgba(0,0,0,0.6);
+  --shadow-node-selected: 0 0 0 2px var(--color-accent-primary), 0 0 24px var(--color-accent-glow);
+  --shadow-elevated:      0 8px 32px rgba(0,0,0,0.8), 0 0 0 1px var(--glass-border);
+
+  /* ── Font aliases ── */
+  --font-ui: var(--font-sans);
+
+  /* ── Transitions ── */
+  --duration-fast:  100ms;
+  --duration-base:  200ms;
+  --duration-slow:  350ms;
+  --ease-default:   cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in:        cubic-bezier(0.4, 0, 1, 1);
+  --ease-out:       cubic-bezier(0, 0, 0.2, 1);
+
+  /* Shorthand transition helpers */
+  --transition-fast: all var(--duration-fast) var(--ease-default);
+  --transition-base: all var(--duration-base) var(--ease-default);
+
+  /* ── Layout ── */
+  --sidebar-width:   240px;
+  --inspector-width: 320px;
+  --titlebar-height: 28px;
+  --statusbar-height: 24px;
+}

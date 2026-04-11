@@ -1,0 +1,58 @@
+.app-shell {
+  display: grid;
+  grid-template-rows: var(--titlebar-height) 1fr var(--statusbar-height);
+  grid-template-columns: 1fr;
+  height: 100vh;
+  width: 100vw;
+  background: var(--color-bg-base);
+  overflow: hidden;
+}
+
+.app-shell__body {
+  display: grid;
+  grid-template-columns: var(--sidebar-width) 1fr var(--inspector-width);
+  grid-template-rows: 1fr;
+  overflow: hidden;
+  position: relative;
+}
+
+.app-shell__body--inspector-hidden {
+  grid-template-columns: var(--sidebar-width) 1fr 0px;
+}
+
+.app-shell__main {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+.app-shell__graph-area {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  background: var(--color-bg-base);
+}
+
+.app-shell__terminal {
+  flex-shrink: 0;
+  border-top: 1px solid var(--color-border-default);
+  transition: height var(--duration-base) var(--ease-default);
+  overflow: hidden;
+}
+
+.app-shell__terminal--collapsed {
+  height: 0 !important;
+}
+
+/* Resize handle for terminal */
+.terminal-resize-handle {
+  height: 4px;
+  cursor: ns-resize;
+  background: transparent;
+  transition: background var(--duration-fast);
+}
+
+.terminal-resize-handle:hover {
+  background: var(--color-accent-primary);
+}
