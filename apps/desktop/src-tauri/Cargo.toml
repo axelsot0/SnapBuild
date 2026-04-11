@@ -1,0 +1,29 @@
+[package]
+name = "snapbuild-desktop"
+version = "0.1.0"
+edition = "2021"
+rust-edition = "2021"
+
+[lib]
+name = "snapbuild_desktop_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["devtools"] }
+tauri-plugin-dialog = "2"
+tauri-plugin-store = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+notify = { version = "7", features = ["macos_fsevent"] }
+notify-debouncer-mini = "0.5"
+
+snapshot-engine = { path = "../../../crates/snapshot-engine" }
+workspace-materializer = { path = "../../../crates/workspace-materializer" }
+build-runner = { path = "../../../crates/build-runner" }
+
+[profile.release]
+opt-level = "s"

@@ -1,0 +1,269 @@
+/* ─── Terminal panel ───────────────────────────────────────── */
+.terminal-panel {
+  background: var(--color-bg-surface);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-family: var(--font-mono);
+}
+
+/* ─── Empty state ──────────────────────────────────────────── */
+.terminal-panel__empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.terminal-panel__empty__prompt {
+  opacity: 0.4;
+}
+
+/* ─── Scrollable area ──────────────────────────────────────── */
+.terminal-panel__scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: var(--space-1) 0;
+}
+
+.terminal-panel__scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.terminal-panel__scroll::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 2px;
+}
+
+/* ─── Warp-style block ─────────────────────────────────────── */
+.terminal-block {
+  margin: var(--space-1) var(--space-2);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-default);
+  overflow: hidden;
+  transition: border-color 150ms ease;
+}
+
+.terminal-block:hover {
+  border-color: var(--color-border-strong);
+}
+
+.terminal-block--running {
+  border-color: var(--color-accent-primary);
+  border-left: 3px solid var(--color-accent-primary);
+}
+
+.terminal-block--success {
+  border-left: 3px solid var(--color-status-ok);
+}
+
+.terminal-block--failed {
+  border-left: 3px solid var(--color-status-fail);
+}
+
+/* Block header */
+.terminal-block__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  background: var(--color-bg-elevated);
+  cursor: pointer;
+  user-select: none;
+}
+
+.terminal-block__header:hover {
+  background: var(--color-bg-overlay);
+}
+
+.terminal-block__chevron {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  transition: transform 150ms ease;
+  flex-shrink: 0;
+}
+
+.terminal-block__chevron--open {
+  transform: rotate(90deg);
+}
+
+.terminal-block__command {
+  font-size: 11px;
+  color: var(--color-text-primary);
+  font-weight: 600;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.terminal-block__badge {
+  padding: 1px 6px;
+  border-radius: 8px;
+  font-size: 9px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.terminal-block__badge--running {
+  background: var(--color-accent-primary-dim);
+  color: var(--color-accent-primary);
+}
+
+.terminal-block__badge--success {
+  background: var(--color-status-ok-dim);
+  color: var(--color-status-ok);
+}
+
+.terminal-block__badge--failed {
+  background: var(--color-status-fail-dim);
+  color: var(--color-status-fail);
+}
+
+.terminal-block__duration {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+/* Copy-all button in block header */
+.terminal-block__copy-all {
+  opacity: 0;
+  background: var(--color-bg-overlay);
+  border: 1px solid var(--color-border-default);
+  border-radius: 3px;
+  color: var(--color-text-muted);
+  font-size: 9px;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  padding: 1px 6px;
+  cursor: pointer;
+  transition: opacity 80ms ease, background 80ms ease;
+  flex-shrink: 0;
+  margin-left: var(--space-1);
+}
+
+.terminal-block__header:hover .terminal-block__copy-all {
+  opacity: 1;
+}
+
+.terminal-block__copy-all:hover {
+  background: var(--color-accent-primary);
+  border-color: var(--color-accent-primary);
+  color: #fff;
+}
+
+/* Block body (output lines) */
+.terminal-block__body {
+  padding: var(--space-1) var(--space-2);
+  background: var(--color-bg-base);
+  max-height: 300px;
+  overflow-y: auto;
+  overflow-x: auto;
+}
+
+.terminal-block__body::-webkit-scrollbar {
+  width: 3px;
+  height: 3px;
+}
+
+.terminal-block__body::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 2px;
+}
+
+.terminal-block__body--collapsed {
+  display: none;
+}
+
+.terminal-line {
+  font-size: 11px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-all;
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  position: relative;
+  padding-right: 28px;
+}
+
+.terminal-line:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.terminal-line--stderr {
+  color: var(--color-status-fail);
+  opacity: 0.9;
+}
+
+.terminal-line__text {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Copy button per line — visible on hover */
+.terminal-line__copy {
+  position: absolute;
+  right: 4px;
+  top: 2px;
+  opacity: 0;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-default);
+  border-radius: 3px;
+  color: var(--color-text-muted);
+  font-size: 10px;
+  width: 20px;
+  height: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 80ms ease, background 80ms ease;
+  flex-shrink: 0;
+}
+
+.terminal-line:hover .terminal-line__copy {
+  opacity: 1;
+}
+
+.terminal-line__copy:hover {
+  background: var(--color-accent-primary);
+  border-color: var(--color-accent-primary);
+  color: #fff;
+}
+
+.terminal-block__no-output {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  font-style: italic;
+  padding: var(--space-1) 0;
+}
+
+/* ─── Clear button ─────────────────────────────────────────── */
+.terminal-panel__clear {
+  position: absolute;
+  top: var(--space-1);
+  right: var(--space-2);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  font-size: 10px;
+  font-family: var(--font-ui);
+  padding: 2px 8px;
+  cursor: pointer;
+  transition: all 100ms ease;
+  z-index: 1;
+}
+
+.terminal-panel__clear:hover {
+  background: var(--color-bg-overlay);
+  color: var(--color-text-primary);
+}
