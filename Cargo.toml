@@ -3,6 +3,7 @@ members = [
   "crates/snapshot-engine",
   "crates/workspace-materializer",
   "crates/build-runner",
+  "apps/desktop/src-tauri",
 ]
 resolver = "2"
 

@@ -1,6 +1,3 @@
-pub mod auto_snapshot;
-pub mod domain;
-
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -85,9 +82,7 @@ pub fn read_manifest(manifest_path: &Path) -> Result<SnapshotManifest, SnapshotE
 }
 
 pub fn manifest_path(store_root: &Path, snapshot_id: &str) -> PathBuf {
-    store_root
-        .join("snapshots")
-        .join(format!("{snapshot_id}.manifest"))
+    store_root.join("snapshots").join(format!("{snapshot_id}.manifest"))
 }
 
 pub fn blob_path(objects_dir: &Path, hash: &str) -> PathBuf {
@@ -325,60 +320,6 @@ fn to_hex(bytes: &[u8]) -> String {
     out
 }
 
-pub fn source_fingerprint_for_files(
-    project_root: &Path,
-    files: &[String],
-) -> Result<String, SnapshotError> {
-    let mut joined = String::new();
-    for rel in files {
-        let path = project_root.join(rel);
-        if path.is_file() {
-            let bytes = fs::read(path)?;
-            joined.push_str(rel);
-            joined.push('\n');
-            joined.push_str(&hash_bytes(&bytes));
-            joined.push('\n');
-        }
-    }
-    Ok(hash_bytes(joined.as_bytes()))
-}
-
-pub fn dependency_fingerprint(project_root: &Path) -> Result<String, SnapshotError> {
-    let lockfiles = [
-        "package-lock.json",
-        "pnpm-lock.yaml",
-        "yarn.lock",
-        "Cargo.lock",
-        "poetry.lock",
-        "Pipfile.lock",
-    ];
-
-    let mut joined = String::new();
-    for file in lockfiles {
-        let path = project_root.join(file);
-        if path.is_file() {
-            let bytes = fs::read(path)?;
-            joined.push_str(file);
-            joined.push('\n');
-            joined.push_str(&hash_bytes(&bytes));
-            joined.push('\n');
-        }
-    }
-
-    Ok(hash_bytes(joined.as_bytes()))
-}
-
-pub fn detect_git_branch(project_root: &Path) -> Option<String> {
-    let head = project_root.join(".git").join("HEAD");
-    let content = fs::read_to_string(head).ok()?;
-    let trimmed = content.trim();
-    let prefix = "ref: refs/heads/";
-    if let Some(branch) = trimmed.strip_prefix(prefix) {
-        return Some(branch.to_string());
-    }
-    None
-}
-
 fn unix_ms() -> u128 {
     std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
@@ -408,49 +349,12 @@ mod tests {
     fn hash_is_hex_and_blob_path_splits_prefix() {
         let hash = hash_bytes(b"abc");
         assert_eq!(hash.len(), 64);
-        assert!(hash
-            .chars()
-            .all(|c| c.is_ascii_hexdigit() && !c.is_ascii_uppercase()));
+        assert!(hash.chars().all(|c| c.is_ascii_hexdigit() && !c.is_ascii_uppercase()));
 
         let path = blob_path(Path::new("objects"), &hash);
         let rendered = path.to_string_lossy();
         assert!(rendered.contains(&hash[..2]));
         assert!(rendered.contains(&hash[2..]));
-    }
-
-    #[test]
-    fn computes_dependency_fingerprint_from_lockfiles() {
-        let base = std::env::temp_dir().join(format!("snapbuild-deps-{}", unix_ms()));
-        fs::create_dir_all(&base).unwrap();
-        fs::write(
-            base.join("Cargo.lock"),
-            "[package]
-name='x'
-",
-        )
-        .unwrap();
-
-        let fp = dependency_fingerprint(&base).unwrap();
-        assert_eq!(fp.len(), 64);
-
-        let _ = fs::remove_dir_all(base);
-    }
-
-    #[test]
-    fn detects_git_branch_from_head_file() {
-        let base = std::env::temp_dir().join(format!("snapbuild-git-{}", unix_ms()));
-        fs::create_dir_all(base.join(".git")).unwrap();
-        fs::write(
-            base.join(".git/HEAD"),
-            "ref: refs/heads/main
-",
-        )
-        .unwrap();
-
-        let branch = detect_git_branch(&base);
-        assert_eq!(branch.as_deref(), Some("main"));
-
-        let _ = fs::remove_dir_all(base);
     }
 
     #[test]

@@ -39,8 +39,3 @@ Run all tests:
 ```bash
 cargo test
 ```
-
-## Product planning docs
-
-- `docs/product-plan.md`
-- `docs/roadmap-4-weeks.md`
