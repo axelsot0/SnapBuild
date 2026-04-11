@@ -1,8 +1,11 @@
-[workspace]
+﻿[workspace]
 members = [
   "crates/snapshot-engine",
   "crates/workspace-materializer",
   "crates/build-runner",
+]
+exclude = [
+  "apps/desktop/src-tauri",
 ]
 resolver = "2"
 
