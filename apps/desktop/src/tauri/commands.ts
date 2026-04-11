@@ -3,6 +3,10 @@ import type {
   ProjectInfo,
   SnapshotRecord,
   BuildResult,
+  BuildRunRecord,
+  FileEntry,
+  DiffResult,
+  TagInfo,
 } from "./types";
 
 // ─── Project ────────────────────────────────────────────────────────────────
@@ -15,6 +19,11 @@ export async function openProject(path: string): Promise<ProjectInfo> {
 /** Get info about the currently open project. Returns null if none open. */
 export async function getProjectInfo(): Promise<ProjectInfo | null> {
   return invoke<ProjectInfo | null>("get_project_info");
+}
+
+/** Get the current git branch of the open project. */
+export async function getGitBranch(): Promise<string | null> {
+  return invoke<string | null>("get_git_branch");
 }
 
 // ─── Snapshots ──────────────────────────────────────────────────────────────
@@ -48,6 +57,21 @@ export async function materializeSnapshot(
   return invoke<string>("materialize_snapshot", { snapshotId });
 }
 
+/** List all files in a snapshot manifest. */
+export async function listSnapshotFiles(
+  snapshotId: string
+): Promise<FileEntry[]> {
+  return invoke<FileEntry[]>("list_snapshot_files", { snapshotId });
+}
+
+/** Compare two snapshots, returning added/removed/modified files. */
+export async function compareSnapshots(
+  idA: string,
+  idB: string
+): Promise<DiffResult> {
+  return invoke<DiffResult>("compare_snapshots", { idA, idB });
+}
+
 // ─── Windows ────────────────────────────────────────────────────────────────
 
 /** Open a new detached window. Types: "graph", "build", "compare" */
@@ -73,6 +97,16 @@ export async function stopWatcher(): Promise<void> {
   return invoke<void>("stop_watcher");
 }
 
+/** Enable or disable auto-snapshot on file change. */
+export async function toggleAutoSnapshot(enabled: boolean): Promise<void> {
+  return invoke<void>("toggle_auto_snapshot", { enabled });
+}
+
+/** Get current auto-snapshot enabled state. */
+export async function getAutoSnapshotEnabled(): Promise<boolean> {
+  return invoke<boolean>("get_auto_snapshot_enabled");
+}
+
 // ─── Build runner ───────────────────────────────────────────────────────────
 
 /**
@@ -90,4 +124,47 @@ export async function runSnapshotBuild(
     command,
     args,
   });
+}
+
+/** Get build history for a snapshot. */
+export async function getBuildHistory(
+  snapshotId: string
+): Promise<BuildRunRecord[]> {
+  return invoke<BuildRunRecord[]>("get_build_history", { snapshotId });
+}
+
+// ─── Tags & Colors ──────────────────────────────────────────────────────────
+
+/** Add a tag to a snapshot. */
+export async function addTag(
+  snapshotId: string,
+  tagName: string,
+  color?: string
+): Promise<void> {
+  return invoke<void>("add_tag", {
+    snapshotId,
+    tagName,
+    color: color ?? null,
+  });
+}
+
+/** Remove a tag from a snapshot. */
+export async function removeTag(
+  snapshotId: string,
+  tagName: string
+): Promise<void> {
+  return invoke<void>("remove_tag", { snapshotId, tagName });
+}
+
+/** Set the color of a snapshot node. */
+export async function setSnapshotColor(
+  snapshotId: string,
+  color: string | null
+): Promise<void> {
+  return invoke<void>("set_snapshot_color", { snapshotId, color });
+}
+
+/** List all tags in the project. */
+export async function listTags(): Promise<TagInfo[]> {
+  return invoke<TagInfo[]>("list_tags");
 }

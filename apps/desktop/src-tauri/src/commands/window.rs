@@ -1,5 +1,3 @@
-use tauri::Manager;
-
 /// Open a new window of the given type.
 /// Supported types: "graph", "build", "compare"
 #[tauri::command]

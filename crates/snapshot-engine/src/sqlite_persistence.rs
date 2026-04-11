@@ -172,6 +172,273 @@ pub fn count_rows(db_path: &Path, table: &str) -> Result<i64, SqlitePersistenceE
     Ok(out.trim().parse::<i64>()?)
 }
 
+// ─── Read / Query functions ────────────────────────────────────────────────
+
+pub fn list_snapshots(
+    db_path: &Path,
+    project_id: &str,
+) -> Result<Vec<SnapshotMeta>, SqlitePersistenceError> {
+    let sql = format!(
+        "SELECT id,parent_id,name,created_at_unix_ms,source_fingerprint,dependency_fingerprint,git_branch,changed_files_json,favorite,color,build_status FROM snapshots WHERE project_id='{}' ORDER BY created_at_unix_ms DESC;",
+        esc(project_id)
+    );
+    let out = run_sql(db_path, &sql)?;
+    let mut results = Vec::new();
+    for line in out.lines() {
+        if line.trim().is_empty() {
+            continue;
+        }
+        let cols: Vec<&str> = line.splitn(11, '|').collect();
+        if cols.len() < 11 {
+            continue;
+        }
+        let changed_files = parse_changed_files_json(cols[7]);
+        results.push(SnapshotMeta {
+            id: cols[0].to_string(),
+            parent_id: none_if_empty(cols[1]),
+            name: cols[2].to_string(),
+            created_at_unix_ms: cols[3].parse::<u128>().unwrap_or(0),
+            source_fingerprint: cols[4].to_string(),
+            dependency_fingerprint: cols[5].to_string(),
+            git_branch: none_if_empty(cols[6]),
+            changed_files,
+            favorite: cols[8] == "1",
+            color: none_if_empty(cols[9]),
+            build_status: str_to_build_status(cols[10]),
+            tags: vec![],
+        });
+    }
+    Ok(results)
+}
+
+pub fn get_snapshot(
+    db_path: &Path,
+    snapshot_id: &str,
+) -> Result<Option<SnapshotMeta>, SqlitePersistenceError> {
+    let sql = format!(
+        "SELECT id,parent_id,name,created_at_unix_ms,source_fingerprint,dependency_fingerprint,git_branch,changed_files_json,favorite,color,build_status FROM snapshots WHERE id='{}';",
+        esc(snapshot_id)
+    );
+    let out = run_sql(db_path, &sql)?;
+    let line = out.trim();
+    if line.is_empty() {
+        return Ok(None);
+    }
+    let cols: Vec<&str> = line.splitn(11, '|').collect();
+    if cols.len() < 11 {
+        return Ok(None);
+    }
+    let changed_files = parse_changed_files_json(cols[7]);
+    Ok(Some(SnapshotMeta {
+        id: cols[0].to_string(),
+        parent_id: none_if_empty(cols[1]),
+        name: cols[2].to_string(),
+        created_at_unix_ms: cols[3].parse::<u128>().unwrap_or(0),
+        source_fingerprint: cols[4].to_string(),
+        dependency_fingerprint: cols[5].to_string(),
+        git_branch: none_if_empty(cols[6]),
+        changed_files,
+        favorite: cols[8] == "1",
+        color: none_if_empty(cols[9]),
+        build_status: str_to_build_status(cols[10]),
+        tags: vec![],
+    }))
+}
+
+pub fn list_snapshot_edges(
+    db_path: &Path,
+    project_id: &str,
+) -> Result<Vec<(String, String)>, SqlitePersistenceError> {
+    let sql = format!(
+        "SELECT e.parent_id,e.child_id FROM snapshot_edges e INNER JOIN snapshots s ON s.id=e.child_id WHERE s.project_id='{}';",
+        esc(project_id)
+    );
+    let out = run_sql(db_path, &sql)?;
+    let mut edges = Vec::new();
+    for line in out.lines() {
+        if line.trim().is_empty() {
+            continue;
+        }
+        let cols: Vec<&str> = line.splitn(2, '|').collect();
+        if cols.len() == 2 {
+            edges.push((cols[0].to_string(), cols[1].to_string()));
+        }
+    }
+    Ok(edges)
+}
+
+pub fn list_build_runs(
+    db_path: &Path,
+    snapshot_id: &str,
+) -> Result<Vec<BuildRun>, SqlitePersistenceError> {
+    let sql = format!(
+        "SELECT id,snapshot_id,command,started_at_unix_ms,duration_ms,success,stdout,stderr,metadata FROM build_runs WHERE snapshot_id='{}' ORDER BY started_at_unix_ms DESC;",
+        esc(snapshot_id)
+    );
+    let out = run_sql(db_path, &sql)?;
+    let mut runs = Vec::new();
+    for line in out.lines() {
+        if line.trim().is_empty() {
+            continue;
+        }
+        let cols: Vec<&str> = line.splitn(9, '|').collect();
+        if cols.len() < 9 {
+            continue;
+        }
+        runs.push(BuildRun {
+            id: cols[0].to_string(),
+            snapshot_id: cols[1].to_string(),
+            command: cols[2].to_string(),
+            started_at_unix_ms: cols[3].parse::<u128>().unwrap_or(0),
+            duration_ms: cols[4].parse::<u128>().unwrap_or(0),
+            success: cols[5] == "1",
+            stdout: cols[6].to_string(),
+            stderr: cols[7].to_string(),
+            metadata: none_if_empty(cols[8]),
+        });
+    }
+    Ok(runs)
+}
+
+pub fn get_latest_build_run(
+    db_path: &Path,
+    snapshot_id: &str,
+) -> Result<Option<BuildRun>, SqlitePersistenceError> {
+    let sql = format!(
+        "SELECT id,snapshot_id,command,started_at_unix_ms,duration_ms,success,stdout,stderr,metadata FROM build_runs WHERE snapshot_id='{}' ORDER BY started_at_unix_ms DESC LIMIT 1;",
+        esc(snapshot_id)
+    );
+    let out = run_sql(db_path, &sql)?;
+    let line = out.trim();
+    if line.is_empty() {
+        return Ok(None);
+    }
+    let cols: Vec<&str> = line.splitn(9, '|').collect();
+    if cols.len() < 9 {
+        return Ok(None);
+    }
+    Ok(Some(BuildRun {
+        id: cols[0].to_string(),
+        snapshot_id: cols[1].to_string(),
+        command: cols[2].to_string(),
+        started_at_unix_ms: cols[3].parse::<u128>().unwrap_or(0),
+        duration_ms: cols[4].parse::<u128>().unwrap_or(0),
+        success: cols[5] == "1",
+        stdout: cols[6].to_string(),
+        stderr: cols[7].to_string(),
+        metadata: none_if_empty(cols[8]),
+    }))
+}
+
+pub fn list_projects(
+    db_path: &Path,
+) -> Result<Vec<(String, String, String)>, SqlitePersistenceError> {
+    let sql = "SELECT id,name,root_path FROM projects ORDER BY created_at_unix_ms DESC;";
+    let out = run_sql(db_path, sql)?;
+    let mut projects = Vec::new();
+    for line in out.lines() {
+        if line.trim().is_empty() {
+            continue;
+        }
+        let cols: Vec<&str> = line.splitn(3, '|').collect();
+        if cols.len() == 3 {
+            projects.push((cols[0].to_string(), cols[1].to_string(), cols[2].to_string()));
+        }
+    }
+    Ok(projects)
+}
+
+pub fn update_snapshot_status(
+    db_path: &Path,
+    snapshot_id: &str,
+    status: &str,
+) -> Result<(), SqlitePersistenceError> {
+    let sql = format!(
+        "UPDATE snapshots SET build_status='{}' WHERE id='{}';",
+        esc(status),
+        esc(snapshot_id)
+    );
+    run_sql(db_path, &sql).map(|_| ())
+}
+
+pub fn list_snapshot_tags(
+    db_path: &Path,
+    snapshot_id: &str,
+) -> Result<Vec<String>, SqlitePersistenceError> {
+    let sql = format!(
+        "SELECT t.name FROM tags t INNER JOIN snapshot_tags st ON st.tag_id=t.id WHERE st.snapshot_id='{}';",
+        esc(snapshot_id)
+    );
+    let out = run_sql(db_path, &sql)?;
+    Ok(out.lines().filter(|l| !l.trim().is_empty()).map(|l| l.to_string()).collect())
+}
+
+pub fn add_tag(
+    db_path: &Path,
+    snapshot_id: &str,
+    tag_name: &str,
+    tag_color: Option<&str>,
+) -> Result<(), SqlitePersistenceError> {
+    let tag_id = format!("tag-{}", tag_name.to_lowercase().replace(' ', "-"));
+    let sql = format!(
+        "INSERT OR IGNORE INTO tags (id,name,color) VALUES ('{}','{}',{});\nINSERT OR IGNORE INTO snapshot_tags (snapshot_id,tag_id) VALUES ('{}','{}');",
+        esc(&tag_id),
+        esc(tag_name),
+        opt_text(tag_color),
+        esc(snapshot_id),
+        esc(&tag_id)
+    );
+    run_sql(db_path, &sql).map(|_| ())
+}
+
+pub fn remove_tag(
+    db_path: &Path,
+    snapshot_id: &str,
+    tag_name: &str,
+) -> Result<(), SqlitePersistenceError> {
+    let sql = format!(
+        "DELETE FROM snapshot_tags WHERE snapshot_id='{}' AND tag_id IN (SELECT id FROM tags WHERE name='{}');",
+        esc(snapshot_id),
+        esc(tag_name)
+    );
+    run_sql(db_path, &sql).map(|_| ())
+}
+
+pub fn set_snapshot_color(
+    db_path: &Path,
+    snapshot_id: &str,
+    color: Option<&str>,
+) -> Result<(), SqlitePersistenceError> {
+    let sql = format!(
+        "UPDATE snapshots SET color={} WHERE id='{}';",
+        opt_text(color),
+        esc(snapshot_id)
+    );
+    run_sql(db_path, &sql).map(|_| ())
+}
+
+pub fn list_all_tags(
+    db_path: &Path,
+) -> Result<Vec<(String, String, Option<String>)>, SqlitePersistenceError> {
+    let sql = "SELECT id,name,color FROM tags ORDER BY name;";
+    let out = run_sql(db_path, sql)?;
+    let mut tags = Vec::new();
+    for line in out.lines() {
+        if line.trim().is_empty() {
+            continue;
+        }
+        let cols: Vec<&str> = line.splitn(3, '|').collect();
+        if cols.len() >= 2 {
+            tags.push((
+                cols[0].to_string(),
+                cols[1].to_string(),
+                cols.get(2).and_then(|c| none_if_empty(c)),
+            ));
+        }
+    }
+    Ok(tags)
+}
+
 fn run_sql(db_path: &Path, sql: &str) -> Result<String, SqlitePersistenceError> {
     let output = Command::new("sqlite3").arg(db_path).arg(sql).output()?;
     if !output.status.success() {
@@ -199,6 +466,36 @@ fn build_status_to_str(status: &BuildStatus) -> &'static str {
         BuildStatus::Success => "success",
         BuildStatus::Failed => "failed",
     }
+}
+
+fn str_to_build_status(s: &str) -> BuildStatus {
+    match s {
+        "running" => BuildStatus::Running,
+        "success" => BuildStatus::Success,
+        "failed" => BuildStatus::Failed,
+        _ => BuildStatus::NotRun,
+    }
+}
+
+fn none_if_empty(s: &str) -> Option<String> {
+    if s.is_empty() || s == "NULL" {
+        None
+    } else {
+        Some(s.to_string())
+    }
+}
+
+fn parse_changed_files_json(json: &str) -> Vec<String> {
+    // Simple JSON array parser for ["file1","file2"] format
+    let trimmed = json.trim().trim_start_matches('[').trim_end_matches(']');
+    if trimmed.is_empty() {
+        return vec![];
+    }
+    trimmed
+        .split(',')
+        .map(|s| s.trim().trim_matches('"').to_string())
+        .filter(|s| !s.is_empty())
+        .collect()
 }
 
 #[cfg(test)]
