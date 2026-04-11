@@ -345,7 +345,6 @@ mod tests {
         assert_ne!(a, b);
     }
 
-
     #[test]
     fn hash_is_hex_and_blob_path_splits_prefix() {
         let hash = hash_bytes(b"abc");
